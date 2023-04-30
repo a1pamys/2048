@@ -223,7 +223,7 @@ while run:
         init_count += 1
         moves -= 1
 
-    if not bot and not game_over:
+    if bot and not game_over:
         calculating = True
         old_board_values = list(map(list, board_values))
         direction = get_best_direction(board_values)
