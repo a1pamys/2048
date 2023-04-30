@@ -196,9 +196,10 @@ while run:
         spawn_new = False
         init_count += 1
     if direction != '':
+        old_board_values = list(map(list, board_values))
         board_values = take_turn(direction, board_values)
         direction = ''
-        spawn_new = True
+        spawn_new = old_board_values != board_values
     if game_over:
         draw_over()
         if high_score > init_high:
@@ -210,7 +211,7 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-            
+
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 direction = 'UP'
