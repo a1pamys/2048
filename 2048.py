@@ -41,7 +41,7 @@ colors = {
 board_values = [[0 for _ in range(4)] for _ in range(4)]
 game_over, spawn_new = False, True
 bot, calculating = False, False
-init_count, score, moves = 0, 0, 62
+init_count, score, moves = 0, 0, 2050
 direction = ''
 d_up, d_down, d_left, d_right = 'UP', 'DOWN', 'LEFT', 'RIGHT'
 
