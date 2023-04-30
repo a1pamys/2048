@@ -32,6 +32,8 @@ colors = {0: (204, 192, 179),
 
 # game variables initialize
 board_values = [[0 for _ in range(4)] for _ in range(4)]
+spawn_new = True
+init_count = 0
 score = 0
 
 # draw tiles for game
@@ -59,6 +61,23 @@ def draw_pieces(board):
                 screen.blit(value_text, text_rect)
                 pygame.draw.rect(screen, 'black', [j * 95 + 20, i * 95 + 120, 75, 75], 2, 5)
 
+# spawn in new pieces randomly when turns start
+def new_pieces(board):
+    count = 0
+    full = False
+    while any(0 in row for row in board) and count < 1:
+        row = random.randint(0, 3)
+        col = random.randint(0, 3)
+        if board[row][col] == 0:
+            count += 1
+            if random.randint(1, 1) == 10: # 10% -> 4
+                board[row][col] = 4
+            else:
+                board[row][col] = 2
+    if count < 1:
+        full = True
+    return board, full
+
 # draw background for the board
 def draw_board():
     pygame.draw.rect(screen, colors['bg'], [0, 100, 400, 400], 0, 10)
@@ -73,6 +92,11 @@ while run:
     screen.fill('gray')
     draw_board()
     draw_pieces(board_values)
+
+    if spawn_new or init_count < 2:
+        board_values, game_over = new_pieces(board_values) # 2 variable: board : isFull
+        spawn_new = False
+        init_count += 1
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
