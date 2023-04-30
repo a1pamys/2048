@@ -5,7 +5,7 @@ pygame.init()
 
 # initial set up
 WIDTH = 400
-HEIGHT = 500
+HEIGHT = 550
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.display.set_caption('2048')
 timer = pygame.time.Clock()
@@ -36,6 +36,7 @@ game_over = False
 spawn_new = True
 init_count = 0
 score = 0
+moves = 5 + 2
 direction = ''
 file = open('high_score', 'r')
 init_high = int(file.readline())
@@ -151,10 +152,12 @@ def new_pieces(board):
 # draw background for the board
 def draw_board():
     pygame.draw.rect(screen, colors['bg'], [0, 0, 400, 400], 0, 10)
+    moves_text = font.render(f'Moves: {moves}', True, 'black')
     score_text = font.render(f'Score: {score}', True, 'black')
     high_score_text = font.render(f'High Score: {high_score}', True, 'black')
-    screen.blit(score_text, (10, 410))
-    screen.blit(high_score_text, (10, 450))
+    screen.blit(moves_text, (10, 410))
+    screen.blit(score_text, (10, 450))
+    screen.blit(high_score_text, (10, 490))
     pass
 
 
@@ -191,16 +194,19 @@ while run:
     screen.fill('gray')
     draw_board()
     draw_pieces(board_values)
+
     if spawn_new or init_count < 2:
         board_values, game_over = new_pieces(board_values) # 2 variable: board : isFull
         spawn_new = False
         init_count += 1
+        moves -= 1
     if direction != '':
         old_board_values = list(map(list, board_values))
         board_values = take_turn(direction, board_values)
         direction = ''
         spawn_new = old_board_values != board_values
-    if game_over:
+    if game_over or moves == 0:
+        game_over = True
         draw_over()
         if high_score > init_high:
             file = open('high_score', 'w')
@@ -212,7 +218,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
 
-        if event.type == pygame.KEYUP:
+        if event.type == pygame.KEYUP and not game_over:
             if event.key == pygame.K_UP:
                 direction = 'UP'
             elif event.key == pygame.K_DOWN:
