@@ -13,22 +13,24 @@ fps = 60
 font = pygame.font.Font('freesansbold.ttf', 24)
 
 # 2048 game color library
-colors = {0: (204, 192, 179),
-          2: (238, 228, 218),
-          4: (237, 224, 200),
-          8: (242, 177, 121),
-          16: (245, 149, 99),
-          32: (246, 124, 95),
-          64: (246, 94, 59),
-          128: (237, 207, 114),
-          256: (237, 204, 97),
-          512: (237, 200, 80),
-          1024: (237, 197, 63),
-          2048: (237, 194, 46),
-          'light text': (249, 246, 242),
-          'dark text': (119, 110, 101),
-          'other': (0, 0, 0),
-          'bg': (187, 173, 160)}
+colors = {
+    0: '#CCC0B3',
+    2: '#EEE4DA',
+    4: '#EDE0C8',
+    8: '#F2B179',
+    16: '#F59563',
+    32: '#F67C5F',
+    64: '#F65E3B',
+    128: '#EDCF72',
+    256: '#EDCC61',
+    512: '#EDC850',
+    1024: '#EDC53F',
+    2048: '#EDC22E',
+    'light text': '#F9F6F2',
+    'dark text': '#776E65',
+    'other': '#000000',
+    'bg': '#BBAE9F'
+}
 
 # game variables initialize
 board_values = [[0 for _ in range(4)] for _ in range(4)]
@@ -36,7 +38,7 @@ game_over = False
 spawn_new = True
 init_count = 0
 score = 0
-moves = 5 + 2
+moves = 62
 direction = ''
 file = open('high_score', 'r')
 init_high = int(file.readline())
