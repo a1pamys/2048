@@ -6,7 +6,7 @@ pygame.init()
 
 # initial set up
 WIDTH = 400
-HEIGHT = 550
+HEIGHT = 600
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.display.set_caption('2048')
 timer = pygame.time.Clock()
@@ -175,9 +175,11 @@ def draw_board():
     moves_text = font.render(f'Moves: {moves}', True, 'black')
     score_text = font.render(f'Score: {score}', True, 'black')
     high_score_text = font.render(f'High Score: {high_score}', True, 'black')
+    switch_bot_text = font.render(f'For BOT mode press Space', True, 'blue')
     screen.blit(moves_text, (10, 410))
     screen.blit(score_text, (10, 450))
     screen.blit(high_score_text, (10, 490))
+    screen.blit(switch_bot_text, (10, 530))
     pass
 
 
@@ -263,6 +265,8 @@ while run:
                 direction = d_left
             elif event.key == pygame.K_RIGHT:
                 direction = d_right
+            elif event.key == pygame.K_SPACE:
+                bot = not bot
 
             if game_over:
                 if event.key == pygame.K_RETURN:
