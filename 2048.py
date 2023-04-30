@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -11,6 +12,10 @@ pygame.display.set_caption('2048')
 timer = pygame.time.Clock()
 fps = 60
 font = pygame.font.Font('freesansbold.ttf', 24)
+file = open('high_score', 'r')
+init_high = int(file.readline())
+file.close()
+high_score = init_high
 
 # 2048 game color library
 colors = {
@@ -34,17 +39,17 @@ colors = {
 
 # game variables initialize
 board_values = [[0 for _ in range(4)] for _ in range(4)]
-game_over = False
-spawn_new = True
-init_count = 0
-score = 0
-moves = 62
+game_over, spawn_new = False, True
+bot, calculating = False, False
+init_count, score, moves = 0, 0, 62
 direction = ''
-file = open('high_score', 'r')
-init_high = int(file.readline())
-file.close()
-high_score = init_high
+d_up, d_down, d_left, d_right = 'UP', 'DOWN', 'LEFT', 'RIGHT'
 
+possible_bot_directions = [d_up, d_left, d_right, d_down]
+
+file = open('high_score', 'r')
+high_score = int(file.readline())
+file.close()
 
 # draw game over and restart text
 def draw_over():
@@ -56,10 +61,10 @@ def draw_over():
 
 
 # take your turn based on direction
-def take_turn(direc, board):
+def take_turn(dir, board):
     global score
     merged = [[False for _ in range(4)] for _ in range(4)]
-    if direc == 'UP':
+    if direction == d_up:
         for i in range(4):
             for j in range(4):
                 shift = 0
@@ -74,11 +79,12 @@ def take_turn(direc, board):
                     if board[i - shift - 1][j] == board[i - shift][j] and not merged[i - shift][j] \
                             and not merged[i - shift - 1][j]:
                         board[i - shift - 1][j] *= 2
-                        score += board[i - shift - 1][j]
+                        if not calculating:
+                            score += board[i - shift - 1][j]
                         board[i - shift][j] = 0
                         merged[i - shift - 1][j] = True
 
-    elif direc == 'DOWN':
+    elif direction == d_down:
         for i in range(3):
             for j in range(4):
                 shift = 0
@@ -92,11 +98,12 @@ def take_turn(direc, board):
                     if board[2 - i + shift][j] == board[3 - i + shift][j] and not merged[3 - i + shift][j] \
                             and not merged[2 - i + shift][j]:
                         board[3 - i + shift][j] *= 2
-                        score += board[3 - i + shift][j]
+                        if not calculating:
+                            score += board[3 - i + shift][j]
                         board[2 - i + shift][j] = 0
                         merged[3 - i + shift][j] = True
 
-    elif direc == 'LEFT':
+    elif direction == d_left:
         for i in range(4):
             for j in range(4):
                 shift = 0
@@ -109,11 +116,12 @@ def take_turn(direc, board):
                 if board[i][j - shift] == board[i][j - shift - 1] and not merged[i][j - shift - 1] \
                         and not merged[i][j - shift]:
                     board[i][j - shift - 1] *= 2
-                    score += board[i][j - shift - 1]
+                    if not calculating:
+                        score += board[i][j - shift - 1]
                     board[i][j - shift] = 0
                     merged[i][j - shift - 1] = True
 
-    elif direc == 'RIGHT':
+    elif direction == d_right:
         for i in range(4):
             for j in range(4):
                 shift = 0
@@ -127,11 +135,21 @@ def take_turn(direc, board):
                     if board[i][4 - j + shift] == board[i][3 - j + shift] and not merged[i][4 - j + shift] \
                             and not merged[i][3 - j + shift]:
                         board[i][4 - j + shift] *= 2
-                        score += board[i][4 - j + shift]
+                        if not calculating:
+                            score += board[i][4 - j + shift]
                         board[i][3 - j + shift] = 0
                         merged[i][4 - j + shift] = True
     return board
 
+# best move
+def get_best_direction(board_values):
+    for dir in possible_bot_directions:
+        test_board_values = list(map(list, board_values))
+        test_board_values = take_turn(dir, test_board_values)
+        if test_board_values != possible_bot_directions:
+            return dir
+
+    return [d_up, d_left, d_right, d_down][random.randint(0, 3)]
 
 # spawn in new pieces randomly when turns start
 def new_pieces(board):
@@ -198,15 +216,31 @@ while run:
     draw_pieces(board_values)
 
     if spawn_new or init_count < 2:
-        board_values, game_over = new_pieces(board_values) # 2 variable: board : isFull
+        board_values, game_over = new_pieces(board_values)
         spawn_new = False
         init_count += 1
         moves -= 1
-    if direction != '':
+
+    if not bot and not game_over:
+        calculating = True
+        old_board_values = list(map(list, board_values))
+        direction = get_best_direction(board_values)
+        calculating = False
+        board_values = take_turn(direction, board_values)
+        spawn_new = old_board_values != board_values
+        if old_board_values == board_values:
+            possible_bot_directions.remove(direction)
+        else:
+            possible_bot_directions = [d_up, d_left, d_right, d_down]
+        direction = ''
+        time.sleep(0.2)
+
+    if direction:
         old_board_values = list(map(list, board_values))
         board_values = take_turn(direction, board_values)
         direction = ''
         spawn_new = old_board_values != board_values
+
     if game_over or moves == 0:
         game_over = True
         draw_over()
@@ -222,13 +256,13 @@ while run:
 
         if event.type == pygame.KEYUP and not game_over:
             if event.key == pygame.K_UP:
-                direction = 'UP'
+                direction = d_up
             elif event.key == pygame.K_DOWN:
-                direction = 'DOWN'
+                direction = d_down
             elif event.key == pygame.K_LEFT:
-                direction = 'LEFT'
+                direction = d_left
             elif event.key == pygame.K_RIGHT:
-                direction = 'RIGHT'
+                direction = d_right
 
             if game_over:
                 if event.key == pygame.K_RETURN:
