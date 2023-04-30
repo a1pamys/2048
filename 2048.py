@@ -32,35 +32,25 @@ colors = {0: (204, 192, 179),
 
 # game variables initialize
 board_values = [[0 for _ in range(4)] for _ in range(4)]
+game_over = False
 spawn_new = True
 init_count = 0
 score = 0
 direction = ''
+file = open('high_score', 'r')
+init_high = int(file.readline())
+file.close()
+high_score = init_high
 
-# draw tiles for game
-def draw_pieces(board):
-    for i in range(4):
-        for j in range(4):
-            value = board[i][j]
 
-            if value > 8:
-                value_color = colors['light text']
-            else:
-                value_color = colors['dark text']
-            if value <= 2048:
-                color = colors[value]
-            else:
-                color = colors['other']
+# draw game over and restart text
+def draw_over():
+    pygame.draw.rect(screen, 'black', [50, 50, 300, 100], 0, 10)
+    game_over_text1 = font.render('Game Over!', True, 'white')
+    game_over_text2 = font.render('Press Enter to Restart', True, 'white')
+    screen.blit(game_over_text1, (130, 65))
+    screen.blit(game_over_text2, (70, 105))
 
-            pygame.draw.rect(screen, color, [j * 95 + 20, i * 95 + 120, 75, 75], 0, 5)
-
-            if value > 0:
-                value_len = len(str(value)) # 2048 -> 4 8 -> 1
-                font = pygame.font.Font('freesansbold.ttf', 48 - (5 * value_len))
-                value_text = font.render(str(value), True, value_color)
-                text_rect = value_text.get_rect(center=(j * 95 + 57, i * 95 + 157))
-                screen.blit(value_text, text_rect)
-                pygame.draw.rect(screen, 'black', [j * 95 + 20, i * 95 + 120, 75, 75], 2, 5)
 
 # take your turn based on direction
 def take_turn(direc, board):
@@ -157,12 +147,42 @@ def new_pieces(board):
         full = True
     return board, full
 
+
 # draw background for the board
 def draw_board():
-    pygame.draw.rect(screen, colors['bg'], [0, 100, 400, 400], 0, 10)
-    current_score_text = font.render(f'Score: {score}', True, 'black')
-    screen.blit(current_score_text, (10, 10))
+    pygame.draw.rect(screen, colors['bg'], [0, 0, 400, 400], 0, 10)
+    score_text = font.render(f'Score: {score}', True, 'black')
+    high_score_text = font.render(f'High Score: {high_score}', True, 'black')
+    screen.blit(score_text, (10, 410))
+    screen.blit(high_score_text, (10, 450))
     pass
+
+
+# draw tiles for game
+def draw_pieces(board):
+    for i in range(4):
+        for j in range(4):
+            value = board[i][j]
+
+            if value > 8:
+                value_color = colors['light text']
+            else:
+                value_color = colors['dark text']
+            if value <= 2048:
+                color = colors[value]
+            else:
+                color = colors['other']
+
+            pygame.draw.rect(screen, color, [j * 95 + 20, i * 95 + 20, 75, 75], 0, 5)
+
+            if value > 0:
+                value_len = len(str(value)) # 2048 -> 4 8 -> 1
+                font = pygame.font.Font('freesansbold.ttf', 48 - (5 * value_len))
+                value_text = font.render(str(value), True, value_color)
+                text_rect = value_text.get_rect(center=(j * 95 + 57, i * 95 + 57))
+                screen.blit(value_text, text_rect)
+                pygame.draw.rect(screen, 'black', [j * 95 + 20, i * 95 + 20, 75, 75], 2, 5)
+
 
 # main game loop
 run = True
@@ -171,23 +191,26 @@ while run:
     screen.fill('gray')
     draw_board()
     draw_pieces(board_values)
-
     if spawn_new or init_count < 2:
         board_values, game_over = new_pieces(board_values) # 2 variable: board : isFull
         spawn_new = False
         init_count += 1
-
     if direction != '':
         board_values = take_turn(direction, board_values)
         direction = ''
         spawn_new = True
+    if game_over:
+        draw_over()
+        if high_score > init_high:
+            file = open('high_score', 'w')
+            file.write(f'{high_score}')
+            file.close()
+            init_high = high_score
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-
-        if event.type == pygame.QUIT:
-            run = False
+            
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 direction = 'UP'
@@ -197,6 +220,18 @@ while run:
                 direction = 'LEFT'
             elif event.key == pygame.K_RIGHT:
                 direction = 'RIGHT'
+
+            if game_over:
+                if event.key == pygame.K_RETURN:
+                    board_values = [[0 for _ in range(4)] for _ in range(4)]
+                    spawn_new = True
+                    init_count = 0
+                    score = 0
+                    direction = ''
+                    game_over = False
+
+    if score > high_score:
+        high_score = score
 
     pygame.display.flip()
 pygame.quit()
